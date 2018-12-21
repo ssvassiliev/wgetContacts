@@ -7,6 +7,7 @@ from progress.bar import Bar
 # Installation:
 # sudo pip install beautifulsoup requests progress vobject
 
+head = "firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
@@ -15,6 +16,7 @@ for url in f1:
     page = requests.get(url).content
     filename = department + '_emails.csv'
     f2 = open(filename, 'w')
+    f2.write(head)
     soup = BeautifulSoup(page, "html.parser")
     tables = soup.find_all("table")
     skip = 0
@@ -34,7 +36,9 @@ for url in f1:
             vc = requests.get(phBk).content
             if vc.find("VCARD") != -1:
                 vcard = vobject.readOne(vc)
-                name = vcard.contents['fn'][0].value
+                given = vcard.contents['n'][0].value.given
+                family = vcard.contents['n'][0].value.family
+                additional = vcard.contents['n'][0].value.additional
                 email = ""
                 title = []
                 if vc.find("EMAIL") != -1:
@@ -42,7 +46,7 @@ for url in f1:
                 if vc.find("TITLE") != -1:
                     for ti in vcard.contents['title']:
                         title.append(ti.value)
-                line = name + ';' + email + ';' + ','.join(title) + '\n'
+                line = given + ';' + family + ';' + email + ';' + ','.join(title) + '\n'
             else:
                 line = ";;\n"
             f2.write(line)
