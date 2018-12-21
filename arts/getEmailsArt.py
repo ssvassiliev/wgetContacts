@@ -16,13 +16,14 @@ for url in f1:
     soup = BeautifulSoup(page, "html.parser")
     table = soup.find("table")
     tr = table.find_all("tr")
-    for each_tr in range(1, len(tr)):
-        td = tr[each_tr].find_all('td')
+    tr.pop(0)
+    for each_tr in tr:
+        td = each_tr.find_all('td')
         name = td[0].text.split(" ")
         given = name[0]
         family = name[len(name)-1]
         line = given + ';' + family + ';' + td[3].a['href'] + ';' + td[1].text + '\n'
-        line=line.replace("mailto:", "")
+        line = line.replace("mailto:", "")
         f2.write(line)
     f2.close()
 f1.close()
