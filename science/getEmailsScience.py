@@ -4,18 +4,22 @@ import vobject
 from bs4 import BeautifulSoup
 import sys
 from progress.bar import Bar
+import io
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
 
-head = "firstname; lastname; email; title\n"
+head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
     department = url.split("/")[6]
     print '\nRetrieving ' + department + ' phonebook'
-    page = requests.get(url).content
+    try:
+        page = requests.get(url).content
+    except requests.exceptions.ConnectionError:
+        page = requests.get(url).content
     filename = department + '_emails.csv'
-    f2 = open(filename, 'w')
+    f2 = io.open(filename, 'w', encoding='utf-8')
     f2.write(head)
     soup = BeautifulSoup(page, "html.parser")
     tables = soup.find_all("table")
@@ -47,8 +51,10 @@ for url in f1:
                     for ti in vcard.contents['title']:
                         title.append(ti.value)
                 line = given + ';' + family + ';' + email + ';' + ','.join(title) + '\n'
+                line = line.decode('utf-8')
             else:
-                line = ";;\n"
+                spl = td[0].text.split(" ")
+                line = spl[0] + ";" + spl[1] + ";;\n"
             f2.write(line)
         bar.finish()
     f2.close()
