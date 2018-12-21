@@ -3,16 +3,20 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 # Installation:
-# sudo pip install beautifulsoup4 requests progress vobject
+# sudo pip install beautifulsoup4 requests
 
 head = "firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
-    if url.find("/cs/") == -1:
-        department = url.split("/")[6]
-    else:
+    if url.find("fredericton/cs/") != -1:
         department = url.split("/")[4]
+    else:
+        department = url.split("/")[6]
+    if url.find("fredericton") != -1:
+        department = department + "-fredericton"
+    else:
+        department = department + "-saintjohn"
     print "extracting contacts from department of " + department
     page = requests.get(url).content
     filename = department + '_emails.csv'
