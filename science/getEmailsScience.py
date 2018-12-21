@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import sys
 from progress.bar import Bar
 # Installation:
-# sudo pip install beautifulsoup requests progress vobject
+# sudo pip install beautifulsoup4 requests progress vobject
 
 head = "firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
