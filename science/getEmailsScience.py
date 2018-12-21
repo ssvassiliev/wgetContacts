@@ -14,16 +14,14 @@ for url in f1:
     url = url.replace("\n", "")
     department = url.split("/")[6]
     print '\nRetrieving ' + department + ' phonebook'
-    try:
-        page = requests.get(url).content
-    except requests.exceptions.ConnectionError:
-        page = requests.get(url).content
+    page = requests.get(url).content
     filename = department + '_emails.csv'
     f2 = io.open(filename, 'w', encoding='utf-8')
     f2.write(head)
     soup = BeautifulSoup(page, "html.parser")
     tables = soup.find_all("table")
     skip = 0
+    bl = 0
     for each_table in tables:
         tr = each_table.find_all('tr')
         td = tr[0].find_all('td')
@@ -37,7 +35,10 @@ for url in f1:
             if str(td[2]).find("phonebook") == -1:
                 continue
             phBk = td[2].a['href'].encode("utf-8").replace("?dn", "?vcard")
-            vc = requests.get(phBk).content
+            try:
+                vc = requests.get(phBk, timeout=5).content
+            except requests.exceptions.ConnectTimeout:
+                vc = requests.get(phBk, timeout=10).content
             if vc.find("VCARD") != -1:
                 vcard = vobject.readOne(vc)
                 given = vcard.contents['n'][0].value.given
@@ -50,16 +51,20 @@ for url in f1:
                 if vc.find("TITLE") != -1:
                     for ti in vcard.contents['title']:
                         title.append(ti.value)
-                line = given + ';' + family + ';' + email + ';' + ','.join(title) + '\n'
+                line = given + ';' + family + ';' + \
+                    email + ';' + ','.join(title) + '\n'
                 line = line.decode('utf-8')
             else:
+                bl += 1
                 spl = td[0].text.split(" ")
                 line = spl[0] + ";" + spl[1] + ";;\n"
             f2.write(line)
         bar.finish()
     f2.close()
-    ln = "** skipped " + str(skip) + " table"
+    ln = "** Warning: skipped " + str(skip) + " table"
     if skip != 1:
         ln = ln + "s"
     print ln
+    if bl != 0:
+        print "** Warning: " + str(bl) + " broken links to vcards"
 f1.close()
