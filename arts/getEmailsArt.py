@@ -2,6 +2,8 @@
 import requests
 from bs4 import BeautifulSoup
 import sys
+# Installation:
+# sudo pip install beautifulsoup4 requests progress vobject
 
 head = "firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
