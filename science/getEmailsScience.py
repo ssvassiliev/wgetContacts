@@ -30,7 +30,7 @@ for url in f1:
         for each_tr in tr:
             td = each_tr.find_all('td')
             bar.next()
-            if str(td[2]).find("href") == -1:
+            if str(td[2]).find("phonebook") == -1:
                 continue
             phBk = td[2].a['href'].encode("utf-8").replace("?dn", "?vcard")
             vc = requests.get(phBk).content
