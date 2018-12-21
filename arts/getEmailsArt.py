@@ -9,7 +9,10 @@ head = "firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
-    department = url.split("/")[6]
+    if url.find("/cs/") == -1:
+        department = url.split("/")[6]
+    else:
+        department = url.split("/")[4]
     print "extracting contacts from department of " + department
     page = requests.get(url).content
     filename = department + '_emails.csv'
