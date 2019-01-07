@@ -32,6 +32,8 @@ for url in f1:
         td = each_tr.find_all('td')
         name = td[0].text.split(" ")
         given = name[0]
+        if given.find(".") != -1:
+            given = given + name[1]
         family = name[len(name)-1]
         line = given + ';' + family + ';' + td[3].a['href'] + ';' + td[1].text + '\n'
         line = line.replace("mailto:", "")
