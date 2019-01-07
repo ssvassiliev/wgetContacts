@@ -38,7 +38,14 @@ for url in f1:
             try:
                 vc = requests.get(phBk, timeout=5).content
             except requests.exceptions.ConnectTimeout:
-                vc = requests.get(phBk, timeout=10).content
+                try:
+                    vc = requests.get(phBk, timeout=10).content
+                except requests.exceptions.ConnectTimeout:
+                    try:
+                        vc = requests.get(phBk, timeout=10).content
+                    except requests.exceptions.ConnectTimeout:
+                        print "Connection failed!\n"
+                        exit()
             if vc.find("VCARD") != -1:
                 vcard = vobject.readOne(vc)
                 given = vcard.contents['n'][0].value.given
@@ -66,5 +73,5 @@ for url in f1:
         ln = ln + "s"
     print ln
     if bl != 0:
-        print "** Warning: " + str(bl) + " broken links to vcards"
+        print "** Warning: " + str(bl) + " broken hyperlink(s) to vcards"
 f1.close()
