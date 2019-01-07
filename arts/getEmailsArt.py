@@ -2,10 +2,12 @@
 import requests
 from bs4 import BeautifulSoup
 import sys
+import io
+
 # Installation:
 # sudo pip install beautifulsoup4 requests
 
-head = "firstname; lastname; email; title\n"
+head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
@@ -20,7 +22,7 @@ for url in f1:
     print "extracting contacts from department of " + department
     page = requests.get(url).content
     filename = department + '_emails.csv'
-    f2 = open(filename, 'w')
+    f2 = io.open(filename, 'w', encoding='utf-8')
     f2.write(head)
     soup = BeautifulSoup(page, "html.parser")
     table = soup.find("table")
