@@ -11,7 +11,6 @@ import re
 
 dept_field = 5
 url_col = 0
-rgx = r'(?:\.?)([\w\-_+#~!$&\'\.]+(?<!\.)(@|[ ]?\(?[ ]?(at|AT)[ ]?\)?[ ]?)(?<!\.)[\w]+[\w\-\.]*\.[a-zA-Z-]{2,3})(?:[^\w])'
 
 head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")

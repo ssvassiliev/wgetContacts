@@ -8,11 +8,13 @@ import io
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
 
+dept_field = 6
+
 head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
     url = url.replace("\n", "")
-    department = url.split("/")[6]
+    department = url.split("/")[dept_field]
     print '\nRetrieving ' + department + ' phonebook'
     page = requests.get(url).content
     filename = department + '_emails.csv'
@@ -68,10 +70,11 @@ for url in f1:
             f2.write(line)
         bar.finish()
     f2.close()
-    ln = "** Warning: skipped " + str(skip) + " table"
-    if skip != 1:
-        ln = ln + "s"
-    print ln
+    if skip != 0:
+        ln = "** Warning: skipped " + str(skip) + " table"
+        if skip != 1:
+            ln = ln + "s"
+        print ln
     if bl != 0:
         print "** Warning: " + str(bl) + " broken hyperlink(s) to vcards"
 f1.close()
