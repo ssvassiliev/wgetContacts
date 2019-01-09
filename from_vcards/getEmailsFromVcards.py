@@ -37,6 +37,7 @@ def get_contact_from_vcard(url):
         for ti in vcard.contents['title']:
             title.append(ti.value)
     line = given + ';' + family + ';' + email + ';' + ','.join(title)
+    line = line.strip("\n")
     line = line.decode('utf-8') + '\n'
     return(line)
 
