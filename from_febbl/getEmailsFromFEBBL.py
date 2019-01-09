@@ -8,6 +8,7 @@ import io
 import re
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
+rgx = '\w+@\w+\.{1}\w+'
 
 dept_field = 4
 url_col = 0
@@ -63,15 +64,23 @@ for url in f1:
             if len(h1) < 2:
                 print " Skipping broken page!"
                 continue
-            fn = h1[1].text.split(' ')
-            if vc.find("@unb.ca") != -1:
-                email = re.findall('\w+@\w+\.{1}\w+', vc)
-                spl = td[0].text.split(" ")
-                line = fn[0] + ";" + fn[1] + ";" + email[0] + ";" + td[1].text.strip('\n') + "\n"
-            else:
-                bl += 1
-                continue
-            f2.write(line)
+            fn = h1[1].get_text().split(' ')
+            given = fn[0]
+            fn.pop(0)
+            family = ""
+            for word in fn:
+                family = family + word + " "
+            vclines = vc.split('\n')
+            err = 1
+            for line in vclines:
+                if line.find("@unb.ca") != -1:
+                    email = BeautifulSoup(line, "lxml").get_text()
+                    spl = td[0].text.split(" ")
+                    line = given + ";" + family.strip() + ";" + email.strip() + ";" + td[1].text.strip('\n') + "\n"
+                    f2.write(line)
+                    err = 0
+                    break
+            bl += err
         bar.finish()
     f2.close()
     ln = "** Warning: skipped " + str(skip) + " table"
