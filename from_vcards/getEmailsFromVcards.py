@@ -5,18 +5,40 @@ from bs4 import BeautifulSoup
 import sys
 from progress.bar import Bar
 import io
+import re
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
 
-# renaissance
-# dept_field = 5
-# phonebk_col = 0
-# ncol = 2
-
-# science
+#science
 dept_field = 6
 phonebk_col = 2
 ncol = 3
+
+#renaissance
+#dept_field = 4
+#phonebk_col = 0
+#ncol = 2
+
+
+def get_phbk_url_from_page(html):
+    url = ''
+    lines = html.split('\n')
+    for l in lines:
+        if l.find("phonebook") != -1:
+            url = (BeautifulSoup(l, "lxml").a['href'])
+            break
+    return(url)
+
+
+def get_email_from_page(html):
+    email = ''
+    lines = html.split('\n')
+    for l in lines:
+        if l.find("mailto") != -1:
+            email = BeautifulSoup(l, "lxml").a['href']
+            email = re.sub("mailto:%20", "", email)
+            break
+    return(email)
 
 
 def get_html_page(url):
@@ -52,6 +74,16 @@ def get_contact_from_vcard(url):
     return(line)
 
 
+def get_vcard_url_from_page(html):
+    lines = html.split('\n')
+    for l in lines:
+        if l.find('?vcard') != -1 or l.find('?help=vcard') != -1:
+            sp = BeautifulSoup(l, 'lxml')
+            url = 'https://phonebook.unb.ca' + sp.a['href'].lstrip('.')
+            break
+    return(url)
+
+
 head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
@@ -77,19 +109,34 @@ for url in f1:
         for each_tr in tr:
             td = each_tr.find_all('td')
             bar.next()
+            if len(td) < ncol:
+                print "\n** Error: The number of columns in the table changed"
+                break
+            u1 = td[phonebk_col].a['href'].encode("utf-8")
             if str(td[phonebk_col]).find("phonebook") == -1:
-                continue
-            else:
-                pass
-            url1 = td[phonebk_col].a['href'].encode("utf-8")
-            lines = get_html_page(url1).split('\n')
-            for each_line in lines:
-                if each_line.find('?vcard') != -1 or each_line.find('?help=vcard') != -1:
-                    sp = BeautifulSoup(each_line, 'lxml')
-                    url2 = 'https://phonebook.unb.ca' + sp.a['href'].lstrip('.')
-            vc = get_html_page(url2)
+                u2 = re.sub('index.html', u1, url)
+                page = get_html_page(u2)
+                if page.find('phonebook') != -1:
+                    u1 = get_phbk_url_from_page(page)
+                elif page.find('mailto') != -1:
+                    e1 = get_email_from_page(page)
+                    spl = td[0].text.split(" ")
+                    given = spl[0]
+                    spl.pop(0)
+                    family = ''
+                    for i in spl:
+                        family = family + i
+                        line = given + ";" + family + ";" + e1 + ";" + td[1].text.strip('\n')
+                        line = line + "\n"
+                        f2.write(line)
+                    continue
+                else:
+                    continue
+            page = get_html_page(u1)
+            u3 = get_vcard_url_from_page(page)
+            vc = get_html_page(u3)
             if vc.find("BEGIN:VCARD") != -1:
-                line = get_contact_from_vcard(url2)
+                line = get_contact_from_vcard(u3)
                 if line.split(';')[2] == '':
                     el = el + 1
                 if line.split(';')[3] == '\n':
