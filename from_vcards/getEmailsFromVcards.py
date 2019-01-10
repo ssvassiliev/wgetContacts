@@ -8,6 +8,16 @@ import io
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
 
+# renaissance
+# dept_field = 5
+# phonebk_col = 0
+# ncol = 2
+
+# science
+dept_field = 6
+phonebk_col = 2
+ncol = 3
+
 
 def get_html_page(url):
     try:
@@ -42,7 +52,6 @@ def get_contact_from_vcard(url):
     return(line)
 
 
-dept_field = 6
 head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
@@ -61,19 +70,26 @@ for url in f1:
     for each_table in tables:
         tr = each_table.find_all('tr')
         td = tr[0].find_all('td')
-        if len(td) < 3:
+        if len(td) < ncol:
             skip += 1
             continue
         bar = Bar('Loading', max=len(tr))
         for each_tr in tr:
             td = each_tr.find_all('td')
             bar.next()
-            if str(td[2]).find("phonebook") == -1:
+            if str(td[phonebk_col]).find("phonebook") == -1:
                 continue
-            url = td[2].a['href'].encode("utf-8").replace("?dn", "?vcard")
-            vc = get_html_page(url)
-            if vc.find("VCARD") != -1:
-                line = get_contact_from_vcard(url)
+            else:
+                pass
+            url1 = td[phonebk_col].a['href'].encode("utf-8")
+            lines = get_html_page(url1).split('\n')
+            for each_line in lines:
+                if each_line.find('?vcard') != -1 or each_line.find('?help=vcard') != -1:
+                    sp = BeautifulSoup(each_line, 'lxml')
+                    url2 = 'https://phonebook.unb.ca' + sp.a['href'].lstrip('.')
+            vc = get_html_page(url2)
+            if vc.find("BEGIN:VCARD") != -1:
+                line = get_contact_from_vcard(url2)
                 if line.split(';')[2] == '':
                     el = el + 1
                 if line.split(';')[3] == '\n':
@@ -99,5 +115,5 @@ for url in f1:
     if bl != 0:
         print "** Warning: " + str(bl) + " broken hyperlink(s) to vcards"
     if el != 0:
-        print "** Warning: " + str(el) + " emails missing in vcards"
+        print "** Warning: " + str(el) + " email(s) missing in vcards"
 f1.close()
