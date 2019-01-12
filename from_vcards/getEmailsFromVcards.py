@@ -9,15 +9,27 @@ import re
 # Installation:
 # sudo pip install beautifulsoup4 requests progress vobject
 
-#science
-dept_field = 6
-phonebk_col = 2
-ncol = 3
+# science
+#dept_field = 6
+#phonebk_col = 2
+#ncol = 3
 
-#renaissance
-#dept_field = 4
-#phonebk_col = 0
-#ncol = 2
+# renaissance
+dept_field = 4
+phonebk_col = 0
+ncol = 2
+
+
+def make_line_from_table(td, email):
+    spl = td[0].text.split(" ")
+    given = spl[0]
+    spl.pop(0)
+    family = ''
+    for i in spl:
+        family = family + ' ' + i
+        line = given + ";" + family.strip() + ";" + email + ";" + td[1].text.strip('\n')
+        line = line + "\n"
+    return(line)
 
 
 def get_phbk_url_from_page(html):
@@ -26,6 +38,16 @@ def get_phbk_url_from_page(html):
     for l in lines:
         if l.find("phonebook") != -1:
             url = (BeautifulSoup(l, "lxml").a['href'])
+            break
+    return(url)
+
+
+def get_vcard_url_from_page(html):
+    lines = html.split('\n')
+    for l in lines:
+        if l.find('?vcard') != -1 or l.find('?help=vcard') != -1:
+            sp = BeautifulSoup(l, 'lxml')
+            url = 'https://phonebook.unb.ca' + sp.a['href'].lstrip('.')
             break
     return(url)
 
@@ -74,16 +96,6 @@ def get_contact_from_vcard(url):
     return(line)
 
 
-def get_vcard_url_from_page(html):
-    lines = html.split('\n')
-    for l in lines:
-        if l.find('?vcard') != -1 or l.find('?help=vcard') != -1:
-            sp = BeautifulSoup(l, 'lxml')
-            url = 'https://phonebook.unb.ca' + sp.a['href'].lstrip('.')
-            break
-    return(url)
-
-
 head = u"firstname; lastname; email; title\n"
 f1 = open(sys.argv[1], "r")
 for url in f1:
@@ -120,15 +132,8 @@ for url in f1:
                     u1 = get_phbk_url_from_page(page)
                 elif page.find('mailto') != -1:
                     e1 = get_email_from_page(page)
-                    spl = td[0].text.split(" ")
-                    given = spl[0]
-                    spl.pop(0)
-                    family = ''
-                    for i in spl:
-                        family = family + i
-                        line = given + ";" + family + ";" + e1 + ";" + td[1].text.strip('\n')
-                        line = line + "\n"
-                        f2.write(line)
+                    line = make_line_from_table(td, e1)
+                    f2.write(line)
                     continue
                 else:
                     continue
@@ -143,14 +148,7 @@ for url in f1:
                     line = line.strip('\n') + td[1].text.strip('\n') + "\n"
             else:
                 bl = bl + 1
-                spl = td[0].text.split(" ")
-                given = spl[0]
-                spl.pop(0)
-                family = ''
-                for i in spl:
-                    family = family + i
-                line = given + ";" + family + ";;" + td[1].text.strip('\n')
-                line = line + "\n"
+                make_line_from_table(td, '')
             f2.write(line)
         bar.finish()
     f2.close()
